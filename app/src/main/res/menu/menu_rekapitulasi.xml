@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/menu_search"
+        android:icon="@drawable/ic_search"
+        android:title="Cari"
+        app:showAsAction="always"/>
+    <item android:id="@+id/menu_view_profile"
+        android:icon="@drawable/ic_person_search"
+        android:title="Profil Siswa"
+        app:showAsAction="always"/>
+    <item android:id="@+id/menu_switch"
+        android:icon="@drawable/ic_switch"
+        android:title="Ganti Siswa"
+        app:showAsAction="always"/>
+</menu>

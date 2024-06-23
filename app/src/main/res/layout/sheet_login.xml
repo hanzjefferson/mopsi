@@ -9,9 +9,15 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
         android:text="@string/login_title"
-        android:textAppearance="?textAppearanceTitleLarge"
+        android:textStyle="bold"
+        android:textAppearance="?textAppearanceTitleLarge" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Silahkan login ke akun yang sudah di tentukan!"
+        android:textColor="?colorPrimary"
+        android:textAppearance="?textAppearanceBodyLarge"
         android:layout_marginBottom="16dp"/>
 
     <com.google.android.material.textfield.TextInputLayout

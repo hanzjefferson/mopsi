@@ -34,6 +34,8 @@ public class SplashActivity extends AppCompatActivity {
         loginBinding = SheetLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        ApiServiceUtils.BASE_URL = getString(R.string.base_route);
+
         mainActivityIntent = new Intent(this, MainActivity.class);
         bottomSheetDialog = new BottomSheetDialog(SplashActivity.this);
 

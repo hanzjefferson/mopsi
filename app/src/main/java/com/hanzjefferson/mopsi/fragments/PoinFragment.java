@@ -429,14 +429,29 @@ public class PoinFragment extends RekapitulasiFragment {
         if (data.containsKey(tanggal)) poin = data.get(tanggal);
 
         if (poin == null || poin.length == 0){
+            binding.layoutInfo.setVisibility(View.GONE);
             binding.spinKitView.setVisibility(View.GONE);
             binding.recyclerView.setVisibility(View.GONE);
             binding.tvNone.setVisibility(View.VISIBLE);
             return;
         }else{
+            binding.layoutInfo.setVisibility(View.VISIBLE);
             binding.spinKitView.setVisibility(View.GONE);
             binding.recyclerView.setVisibility(View.VISIBLE);
             binding.tvNone.setVisibility(View.GONE);
+
+            int jumlahPoin = 0;
+            int poinPositif = 0;
+            int poinNegatif = 0;
+            for (Poin p : poin){
+                jumlahPoin += p.bobot;
+                if (p.bobot > 0) poinPositif += p.bobot;
+                else poinNegatif += p.bobot;
+            }
+            binding.tvTotal.setText(String.valueOf(jumlahPoin).startsWith("-") ? String.valueOf(jumlahPoin) : "+" + String.valueOf(jumlahPoin));
+            binding.tvTotal.setTextColor(getContext().getColor(jumlahPoin > 0 ? android.R.color.holo_red_dark : android.R.color.holo_green_dark));
+            binding.tvPositive.setText(String.valueOf(poinPositif));
+            binding.tvNegative.setText(String.valueOf(poinNegatif).startsWith("-") ? String.valueOf(poinNegatif) : "+" + String.valueOf(poinNegatif));
         }
         adapter.update(poin);
     }

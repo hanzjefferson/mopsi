@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">MOPSI</string>
+    <string name="base_route">https://3767-103-166-10-92.ngrok-free.app/</string>
 
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
@@ -37,7 +38,7 @@
         libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
-    <string name="login_title">Silahkan login,</string>
+    <string name="login_title">Login</string>
     <string name="login_submit">Login</string>
     <string name="login_userid_input_hint">User ID</string>
     <string name="login_pin_input_hint">PIN</string>

@@ -21,6 +21,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.android.volley.VolleyError;
 import com.blogspot.atifsoftwares.animatoolib.Animatoo;
 import com.google.android.material.tabs.TabLayoutMediator;
+import com.google.gson.Gson;
 import com.hanzjefferson.mopsi.adapters.AnnouncementSlideAdapter;
 import com.hanzjefferson.mopsi.adapters.RekapitulasiPageAdapter;
 import com.hanzjefferson.mopsi.databinding.ActivityMainBinding;
@@ -44,6 +45,7 @@ public class MainActivity extends AppCompatActivity{
 
     private int vpRekapitulasiPosition = 0;
     private int rekapId = -1;
+    private String profile = "";
     private ActivityResultLauncher studentManagerLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
         @Override
         public void onActivityResult(ActivityResult o) {
@@ -178,6 +180,7 @@ public class MainActivity extends AppCompatActivity{
                     binding.tabLayout.setVisibility(View.VISIBLE);
 
                     rekapId = response.data.id;
+                    profile = new Gson().toJson(response.data);
                     handleRekapitulasi(response.data);
                 } else {
                     binding.content.layoutInfo.setVisibility(View.VISIBLE);
@@ -258,6 +261,10 @@ public class MainActivity extends AppCompatActivity{
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.menu_switch){
             studentManagerLauncher.launch(new Intent(this, StudentManagerActivity.class));
+        } else if (item.getItemId() == R.id.menu_view_profile) {
+            Intent i = new Intent(this, ProfileActivity.class);
+            i.putExtra("view_profile", profile);
+            startActivity(i);
         }
         return super.onOptionsItemSelected(item);
     }

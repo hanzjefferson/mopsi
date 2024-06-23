@@ -152,6 +152,20 @@ public class ApiServiceUtils {
                 .build());
     }
 
+    public static void call(CallbackListener<JsonObject> callbackListener, int id, String string) {
+        Map<String, String> body = new HashMap<>();
+        body.put("ids", "["+id+"]");
+        body.put("perihal", string);
+
+        addRequest(RequestBuilder.newBuilder(JsonObject.class)
+                .method(Request.Method.POST)
+                .endpoint("call")
+                .headers(getAuthorizationHeader(AccountUtils.getToken()))
+                .body(body)
+                .listener(callbackListener)
+                .build());
+    }
+
     public static void newRekap(CallbackListener<JsonObject> listener){
         addRequest(RequestBuilder.newBuilder(JsonObject.class)
                 .method(Request.Method.PATCH)

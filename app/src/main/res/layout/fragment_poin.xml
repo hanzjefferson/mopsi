@@ -15,22 +15,88 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <HorizontalScrollView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:scrollbars="none">
+                android:orientation="vertical"
+                android:paddingBottom="4dp"
+                android:background="?colorSurface">
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
 
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/chip_group"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:paddingVertical="4dp"
-                    android:paddingLeft="14dp"
-                    android:paddingRight="14dp"
-                    app:selectionRequired="true"
-                    app:singleLine="true"
-                    app:singleSelection="true" />
-            </HorizontalScrollView>
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chip_group"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:paddingVertical="4dp"
+                        android:paddingLeft="14dp"
+                        android:paddingRight="14dp"
+                        app:selectionRequired="true"
+                        app:singleLine="true"
+                        app:singleSelection="true" />
+                </HorizontalScrollView>
+                <LinearLayout
+                    android:id="@+id/layout_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:text="Poin positif"/>
+                        <TextView
+                            android:id="@+id/tv_positive"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:text="+0"
+                            android:textColor="@android:color/holo_green_dark"/>
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:text="Poin negatif"/>
+                        <TextView
+                            android:id="@+id/tv_negative"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:text="-0"
+                            android:textColor="@android:color/holo_red_dark"/>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:text="Jumlah poin"/>
+                        <TextView
+                            android:id="@+id/tv_total"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:text="0"
+                            android:textColor="?colorPrimary"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
 
             <com.github.ybq.android.spinkit.SpinKitView
                 android:id="@+id/spin_kit_view"

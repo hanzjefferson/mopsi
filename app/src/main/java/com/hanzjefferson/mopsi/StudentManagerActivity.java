@@ -2,9 +2,11 @@ package com.hanzjefferson.mopsi;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 
 import com.android.volley.VolleyError;
 import com.blogspot.atifsoftwares.animatoolib.Animatoo;
@@ -18,6 +20,8 @@ import com.hanzjefferson.mopsi.utils.ApiServiceUtils;
 public class StudentManagerActivity extends AppCompatActivity {
     private ActivityStudentManagerBinding binding;
     private KelasAdapter adapter;
+    private SearchView searchView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,10 +73,21 @@ public class StudentManagerActivity extends AppCompatActivity {
                 adapter.setStudentOnItemClickListener((v, m, i) -> {
                     Intent intent = new Intent();
                     intent.putExtra("id", m.account_id);
+                    intent.putExtra("query", adapter.getSearchQuery());
                     setResult(RESULT_OK, intent);
-                    finish();
+                    super.finish();
                 });
                 binding.recyclerView.setAdapter(adapter);
+
+                String query = getIntent().getStringExtra("query");
+                if (query != null) {
+                    adapter.setSearchQuery(query);
+                    if (adapter.getItemModels().isEmpty()) {
+                        binding.tvNoAnnouncement.setVisibility(View.VISIBLE);
+                    } else {
+                        binding.tvNoAnnouncement.setVisibility(View.GONE);
+                    }
+                }
             } else {
                 adapter.update(kelas);
             }
@@ -82,8 +97,45 @@ public class StudentManagerActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_student_manager, menu);
+
+        searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (adapter != null){
+                    adapter.setSearchQuery(newText);
+                    if (adapter.getItemModels().isEmpty()) {
+                        binding.tvNoAnnouncement.setVisibility(View.VISIBLE);
+                    } else {
+                        binding.tvNoAnnouncement.setVisibility(View.GONE);
+                    }
+                }
+                return false;
+            }
+        });
+        searchView.setQueryHint("Cari sesuatu...");
+
+        String query = getIntent().getStringExtra("query");
+        if (query != null && !query.isEmpty()) {
+            searchView.onActionViewExpanded();
+            searchView.setQuery(query, false);
+        }
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
     public void finish() {
         Animatoo.INSTANCE.animateSlideRight(this);
+        Intent intent = new Intent();
+        intent.putExtra("query", adapter.getSearchQuery());
+        setResult(RESULT_CANCELED, intent);
         super.finish();
     }
 }

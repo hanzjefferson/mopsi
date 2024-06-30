@@ -9,4 +9,5 @@ public class Profile {
     public long birth;
     public String phone_num;
     public String gender;
+    public Object others;
 }

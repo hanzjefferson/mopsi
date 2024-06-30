@@ -29,6 +29,12 @@ public class PoinAdapter extends ListAdapter<Poin, PoinAdapter.ViewHolder> {
         super(context);
     }
 
+    @Override
+    public Poin onItemSearch(Poin model) {
+        if (model.tanggal.toLowerCase().contains(getSearchQuery()) || model.keterangan.toLowerCase().contains(getSearchQuery()) || String.valueOf(model.bobot).contains(getSearchQuery()))
+            return model;
+        return null;
+    }
 
     @Override
     public void update(Poin[] models) {

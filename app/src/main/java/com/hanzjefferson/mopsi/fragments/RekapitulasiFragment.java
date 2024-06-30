@@ -6,5 +6,7 @@ import com.hanzjefferson.mopsi.models.Rekapitulasi;
 
 public abstract class RekapitulasiFragment extends Fragment {
     public abstract void onReceiveData(Rekapitulasi rekapitulasi);
-
+    public boolean onItemSearch(String query){
+        return false;
+    }
 }

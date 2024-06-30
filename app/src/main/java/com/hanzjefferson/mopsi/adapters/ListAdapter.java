@@ -17,12 +17,13 @@ public abstract class ListAdapter<I, VH extends RecyclerView.ViewHolder> extends
     }
 
     private Context context;
-    private List<I> models;
+    private List<I> models = new ArrayList<>();
     private onItemClickListener<I> onItemClickListener;
+    private List<I> searchModels = new ArrayList<>();
+    private String searchQuery = "";
     
     public ListAdapter(Context context) {
         this.context = context;
-        this.models = new ArrayList<>();
     }
     
     public ListAdapter(Context context, I[] models){
@@ -50,6 +51,26 @@ public abstract class ListAdapter<I, VH extends RecyclerView.ViewHolder> extends
         notifyItemChanged(index);
     }
 
+    public void setSearchQuery(String searchQuery){
+        this.searchQuery = searchQuery.toLowerCase();
+        searchModels.clear();
+        for (I model : models) {
+            I item = onItemSearch(model);
+            if (item != null) {
+                searchModels.add(item);
+            }
+        }
+        notifyDataSetChanged();
+    }
+
+    public String getSearchQuery(){
+        return searchQuery;
+    }
+
+    public I onItemSearch(I model){
+        return model;
+    }
+
     public void setOnItemClickListener(onItemClickListener<I> onItemClickListener){
         this.onItemClickListener = onItemClickListener;
     }
@@ -73,15 +94,15 @@ public abstract class ListAdapter<I, VH extends RecyclerView.ViewHolder> extends
     }
     
     public List<I> getItemModels(){
-        return models;
+        return !searchQuery.isEmpty() ? searchModels : models;
     }
     
     public I getItemModel(int index){
-        return getItemModels().get(index);
+        return !searchQuery.isEmpty() ? searchModels.get(index) : getItemModels().get(index);
     }
 
     @Override
     public int getItemCount() {
-        return models.size();
+        return !searchQuery.isEmpty() ? searchModels.size() : models.size();
     }
 }

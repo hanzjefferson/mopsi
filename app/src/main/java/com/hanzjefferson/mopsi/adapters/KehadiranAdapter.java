@@ -23,6 +23,13 @@ public class KehadiranAdapter extends ListAdapter<Kehadiran, KehadiranAdapter.Vi
         super(context, models);
     }
 
+    @Override
+    public Kehadiran onItemSearch(Kehadiran model) {
+        if (model.keterangan.toLowerCase().contains(getSearchQuery()) || model.status.toLowerCase().contains(getSearchQuery()))
+            return model;
+        return null;
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

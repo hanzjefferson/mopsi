@@ -5,7 +5,10 @@
         <item name="colorPrimaryContainer">@color/primaryContainer</item>
         <item name="colorSecondary">@color/primary</item>
         <item name="colorSecondaryContainer">@color/primaryContainer</item>
+        <item name="colorSurface">#FAFAFA</item>
+        <item name="colorSurfaceContainer">#FAFAFA</item>
         <item name="android:colorBackground">@android:color/white</item>
+        <item name="android:windowBackground">@android:color/white</item>
         <item name="fontFamily">@font/inter</item>
     </style>
 

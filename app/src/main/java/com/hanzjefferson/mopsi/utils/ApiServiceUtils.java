@@ -152,10 +152,12 @@ public class ApiServiceUtils {
                 .build());
     }
 
-    public static void call(CallbackListener<JsonObject> callbackListener, int id, String string) {
+    public static void call(CallbackListener<JsonObject> callbackListener, int[] ids, long date, String tempat, String perihal) {
         Map<String, String> body = new HashMap<>();
-        body.put("ids", "["+id+"]");
-        body.put("perihal", string);
+        body.put("ids", new Gson().toJson(ids));
+        body.put("tanggal", String.valueOf(date/1000));
+        body.put("tempat", tempat);
+        body.put("perihal", perihal);
 
         addRequest(RequestBuilder.newBuilder(JsonObject.class)
                 .method(Request.Method.POST)

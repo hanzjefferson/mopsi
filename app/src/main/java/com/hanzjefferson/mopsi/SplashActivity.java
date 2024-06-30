@@ -1,10 +1,12 @@
 package com.hanzjefferson.mopsi;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -14,6 +16,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.gson.JsonObject;
 import com.hanzjefferson.mopsi.databinding.ActivitySplashBinding;
+import com.hanzjefferson.mopsi.databinding.SheetBotAuthBinding;
 import com.hanzjefferson.mopsi.databinding.SheetLoginBinding;
 import com.hanzjefferson.mopsi.models.Profile;
 import com.hanzjefferson.mopsi.models.Response;
@@ -24,14 +27,17 @@ import com.hanzjefferson.mopsi.utils.SocketUtils;
 public class SplashActivity extends AppCompatActivity {
     private ActivitySplashBinding binding;
     private SheetLoginBinding loginBinding;
+    private SheetBotAuthBinding botAuthBinding;
     private Intent mainActivityIntent;
     private BottomSheetDialog bottomSheetDialog;
+    private boolean isBotAuth = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivitySplashBinding.inflate(getLayoutInflater());
         loginBinding = SheetLoginBinding.inflate(getLayoutInflater());
+        botAuthBinding = SheetBotAuthBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         ApiServiceUtils.BASE_URL = getString(R.string.base_route);
@@ -116,6 +122,23 @@ public class SplashActivity extends AppCompatActivity {
             });
         });
 
+        botAuthBinding.buttonSend.setOnClickListener(v -> {
+            if (AccountUtils.getProfile() == null){
+                Toast.makeText(getApplicationContext(), "Anda belum login!", Toast.LENGTH_LONG).show();
+                return;
+            }
+            String url = getString(R.string.twilio_api) + "&text=" + Uri.encode("auth "+String.valueOf(AccountUtils.getProfile().id+" "+AccountUtils.getToken()));
+
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(url));
+
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                startActivity(intent);
+            } else {
+                Toast.makeText(this, "WhatsApp belum terpasang!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         AccountUtils.init(this);
         ApiServiceUtils.init(this);
         
@@ -123,7 +146,7 @@ public class SplashActivity extends AppCompatActivity {
             try {
                 Thread.sleep(1000);
                 SocketUtils.connect(args -> {
-                    runOnUiThread(this::onSplashed);
+                    if (AccountUtils.getProfile() == null) runOnUiThread(this::onSplashed);
                 });
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -131,7 +154,14 @@ public class SplashActivity extends AppCompatActivity {
         }).start();
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (isBotAuth) onSplashed();
+    }
+
     public void onSplashed(){
+        isBotAuth = false;
         if (AccountUtils.isLoggedIn()){
             binding.spinKitView.setVisibility(View.VISIBLE);
             AccountUtils.fetchProfile(new ApiServiceUtils.CallbackListener<Profile>() {
@@ -139,8 +169,15 @@ public class SplashActivity extends AppCompatActivity {
                 public void onResponse(Response<Profile> response) {
                     binding.spinKitView.setVisibility(View.GONE);
                     if (response.isSuccess()){
-                        startActivity(mainActivityIntent);
-                        finish();
+                        if (response.data.phone_num != null && !response.data.phone_num.isEmpty()){
+                            startActivity(mainActivityIntent);
+                            finish();
+                        }else{
+                            isBotAuth = true;
+                            bottomSheetDialog.setContentView(botAuthBinding.getRoot());
+                            bottomSheetDialog.setCancelable(false);
+                            bottomSheetDialog.show();
+                        }
                     } else {
                         new MaterialAlertDialogBuilder(SplashActivity.this)
                                 .setTitle("Kesalahan!")

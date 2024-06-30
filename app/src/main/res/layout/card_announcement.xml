@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_marginHorizontal="16dp"
-    android:background="@drawable/rounded_surface_background"
+    android:background="@drawable/rounded_background"
     android:padding="16dp">
 
     <TextView

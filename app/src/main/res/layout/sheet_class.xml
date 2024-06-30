@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -18,7 +19,7 @@
         android:layout_height="wrap_content"
         android:ellipsize="end"
         android:maxLines="1"
-        android:layout_marginBottom="4dp"
+        android:layout_marginBottom="2dp"
         android:text="Nama Kelas"
         android:textAppearance="?textAppearanceTitleSmall"
         android:textStyle="bold"
@@ -38,7 +39,7 @@
         android:layout_height="wrap_content"
         android:ellipsize="end"
         android:maxLines="1"
-        android:layout_marginBottom="4dp"
+        android:layout_marginBottom="2dp"
         android:text="Wali Kelas"
         android:textAppearance="?textAppearanceTitleSmall"
         android:textStyle="bold"
@@ -58,8 +59,8 @@
         android:layout_height="wrap_content"
         android:ellipsize="end"
         android:maxLines="1"
-        android:layout_marginBottom="4dp"
-        android:text="Jumlah Anak"
+        android:layout_marginBottom="2dp"
+        android:text="Jumlah Murid"
         android:textAppearance="?textAppearanceTitleSmall"
         android:textStyle="bold"
         android:textColor="?colorPrimary" />
@@ -70,9 +71,15 @@
         android:ellipsize="end"
         android:layout_marginBottom="8dp"
         android:maxLines="1"
-        android:text="Jumlah Anak"
+        android:text="Jumlah Murid"
         android:textAppearance="?textAppearanceTitleMedium"
         android:textColor="?colorOnSurface" />
 
-
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Lihat profil"
+        app:icon="@drawable/ic_info"
+        app:iconGravity="textStart"/>
 </LinearLayout>

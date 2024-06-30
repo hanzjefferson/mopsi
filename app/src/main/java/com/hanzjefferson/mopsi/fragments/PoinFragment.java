@@ -284,6 +284,20 @@ public class PoinFragment extends RekapitulasiFragment {
     }
 
     @Override
+    public boolean onItemSearch(String query) {
+        if (adapter != null) {
+            adapter.setSearchQuery(query);
+            if (adapter.getItemModels().isEmpty()) {
+                binding.tvNone.setVisibility(View.VISIBLE);
+            } else {
+                binding.tvNone.setVisibility(View.GONE);
+            }
+            return true;
+        }
+        return super.onItemSearch(query);
+    }
+
+    @Override
     public void onReceiveData(Rekapitulasi rekapitulasi) {
         this.data = rekapitulasi.poin;
         this.id = rekapitulasi.id;
@@ -449,7 +463,7 @@ public class PoinFragment extends RekapitulasiFragment {
                 else poinNegatif += p.bobot;
             }
             binding.tvTotal.setText(String.valueOf(jumlahPoin).startsWith("-") ? String.valueOf(jumlahPoin) : "+" + String.valueOf(jumlahPoin));
-            binding.tvTotal.setTextColor(getContext().getColor(jumlahPoin > 0 ? android.R.color.holo_red_dark : android.R.color.holo_green_dark));
+            binding.tvTotal.setTextColor(getContext().getColor(jumlahPoin > 0 ? android.R.color.holo_green_dark : android.R.color.holo_red_dark));
             binding.tvPositive.setText(String.valueOf(poinPositif));
             binding.tvNegative.setText(String.valueOf(poinNegatif).startsWith("-") ? String.valueOf(poinNegatif) : "+" + String.valueOf(poinNegatif));
         }

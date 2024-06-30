@@ -100,6 +100,20 @@ public class KehadiranFragment extends RekapitulasiFragment {
     }
 
     @Override
+    public boolean onItemSearch(String query) {
+        if (adapter != null) {
+            adapter.setSearchQuery(query);
+            if (adapter.getItemModels().isEmpty()) {
+                binding.tvNone.setVisibility(View.VISIBLE);
+            } else {
+                binding.tvNone.setVisibility(View.GONE);
+            }
+            return true;
+        }
+        return super.onItemSearch(query);
+    }
+
+    @Override
     public void onReceiveData(Rekapitulasi rekapitulasi) {
         this.data = rekapitulasi.kehadiran;
         if (binding == null) return;

@@ -15,6 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.AttrRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.core.widget.NestedScrollView;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -43,14 +44,22 @@ public class MainActivity extends AppCompatActivity{
     private String[] tabTitles = new String[]{"Kehadiran", "Poin"};
     private boolean collapsed = false;
 
+    private SearchView searchView;
     private int vpRekapitulasiPosition = 0;
     private int rekapId = -1;
     private String profile = "";
+    private String searchQuery = "";
+    private String searchQueryStudent = "";
     private ActivityResultLauncher studentManagerLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
         @Override
         public void onActivityResult(ActivityResult o) {
             if (o.getResultCode() == RESULT_OK){
                 rekapId = o.getData().getIntExtra("id", -1);
+                searchQueryStudent = o.getData().getStringExtra("query");
+
+                fetchRekapitulasi();
+            }else if (o.getResultCode() == RESULT_CANCELED){
+                searchQueryStudent = o.getData().getStringExtra("query");
             }
         }
     });
@@ -94,6 +103,7 @@ public class MainActivity extends AppCompatActivity{
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
                 vpRekapitulasiPosition = position;
+                rekapitulasiPageAdapter.getFragment(vpRekapitulasiPosition).onItemSearch(searchQuery);
             }
         });
 
@@ -254,13 +264,30 @@ public class MainActivity extends AppCompatActivity{
             menu.findItem(R.id.menu_view_profile).setVisible(false);
         }
 
+        searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                searchQuery = newText;
+                return rekapitulasiPageAdapter.getFragment(vpRekapitulasiPosition).onItemSearch(newText);
+            }
+        });
+        searchView.setQueryHint("Cari sesuatu...");
+
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.menu_switch){
-            studentManagerLauncher.launch(new Intent(this, StudentManagerActivity.class));
+            Intent i = new Intent(this, StudentManagerActivity.class);
+            i.putExtra("query", searchQueryStudent);
+            studentManagerLauncher.launch(i);
         } else if (item.getItemId() == R.id.menu_view_profile) {
             Intent i = new Intent(this, ProfileActivity.class);
             i.putExtra("view_profile", profile);

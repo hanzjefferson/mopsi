@@ -11,6 +11,8 @@
         android:layout_height="wrap_content"
         android:ellipsize="end"
         android:maxLines="1"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
         android:text="Nama Kelas"
         android:paddingHorizontal="16dp"
         android:textAppearance="?textAppearanceTitleSmall"

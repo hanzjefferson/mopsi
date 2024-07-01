@@ -23,6 +23,7 @@ import com.google.android.material.timepicker.TimeFormat;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.hanzjefferson.mopsi.databinding.ActivityProfileBinding;
+import com.hanzjefferson.mopsi.databinding.ItemStudentBinding;
 import com.hanzjefferson.mopsi.databinding.SheetPemanggilanBinding;
 import com.hanzjefferson.mopsi.models.Kelas;
 import com.hanzjefferson.mopsi.models.Profile;
@@ -76,10 +77,11 @@ public class ProfileActivity extends AppCompatActivity {
 
         if (profile.others != null){
             binding.layoutOthers.setVisibility(View.VISIBLE);
+            String othersJson = new Gson().toJson(profile.others);
             switch (profile.role_id){
                 case 1:
                 case 2:
-                    Profile parentProfile = new Gson().fromJson(new Gson().toJson(profile.others), Profile.class);
+                    Profile parentProfile = new Gson().fromJson(othersJson, Profile.class);
                     binding.layoutParent.setVisibility(View.VISIBLE);
                     binding.layoutParent.setOnClickListener(v->{
                         Intent intent = new Intent(ProfileActivity.this, ProfileActivity.class);
@@ -89,16 +91,26 @@ public class ProfileActivity extends AppCompatActivity {
                     binding.tvParent.setText(parentProfile.full_name);
                     break;
                 case 3:
-
+                    Profile[] childrenProfile = new Gson().fromJson(othersJson, Profile[].class);
+                    binding.tvOthers.setText("Siswa yang terkait");
+                    for (Profile child : childrenProfile){
+                        ItemStudentBinding itemBinding = ItemStudentBinding.inflate(getLayoutInflater());
+                        itemBinding.tvName.setText(child.full_name);
+                        itemBinding.getRoot().setOnClickListener(v->{
+                            Intent intent = new Intent(ProfileActivity.this, ProfileActivity.class);
+                            intent.putExtra("view_profile", new Gson().toJson(child));
+                            startActivity(intent);
+                        });
+                        binding.layoutOthers.addView(itemBinding.getRoot());
+                    }
                     break;
                 case 4:
-                    Kelas kelas = new Gson().fromJson(new Gson().toJson(profile.others), Kelas.class);
+                    Kelas kelas = new Gson().fromJson(othersJson, Kelas.class);
                     binding.layoutClass.setVisibility(View.VISIBLE);
                     binding.tvClass.setText("Kelas "+kelas.name);
                     break;
             }
         }
-
         SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd HH:mm");
         AtomicReference<Long> date = new AtomicReference<>(new Date().getTime());
 

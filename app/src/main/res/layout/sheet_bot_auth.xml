@@ -39,17 +39,6 @@
         android:layout_marginBottom="16dp"/>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_copy"
-        style="@style/Widget.Material3.Button.OutlinedButton.Icon"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Salin pesan verifikasi"
-        app:strokeColor="?colorPrimary"
-        android:layout_marginBottom="8dp"
-        app:icon="@drawable/ic_copy"
-        app:iconGravity="textStart" />
-
-    <com.google.android.material.button.MaterialButton
         android:id="@+id/button_send"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -125,15 +125,6 @@ public class SplashActivity extends AppCompatActivity {
             });
         });
 
-        botAuthBinding.buttonCopy.setOnClickListener(v -> {
-            ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-            clipboard.addPrimaryClipChangedListener(()->{
-                Toast.makeText(getApplicationContext(), "Copied!", Toast.LENGTH_SHORT);
-            });
-            ClipData clip = ClipData.newPlainText("MOPSI Command", "auth "+String.valueOf(AccountUtils.getProfile().id+" "+AccountUtils.getToken()));
-            clipboard.setPrimaryClip(clip);
-        });
-
         botAuthBinding.buttonSend.setOnClickListener(v -> {
             if (AccountUtils.getProfile() == null){
                 Toast.makeText(getApplicationContext(), "Anda belum login!", Toast.LENGTH_LONG).show();

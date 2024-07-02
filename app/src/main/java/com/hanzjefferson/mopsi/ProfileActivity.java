@@ -70,29 +70,22 @@ public class ProfileActivity extends AppCompatActivity {
             binding.imgEditNum.setVisibility(View.GONE);
         }
         else {
-            botAuthBinding.buttonCopy.setOnClickListener(v -> {
-                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                clipboard.addPrimaryClipChangedListener(()->{
-                    Toast.makeText(getApplicationContext(), "Copied!", Toast.LENGTH_SHORT);
-                });
-                ClipData clip = ClipData.newPlainText("MOPSI Command", "ch_num "+String.valueOf(AccountUtils.getProfile().id+" [nomor baru anda]"));
-                clipboard.setPrimaryClip(clip);
-            });
 
             botAuthBinding.buttonSend.setOnClickListener(v -> {
                 if (AccountUtils.getProfile() == null){
                     Toast.makeText(getApplicationContext(), "Anda belum login!", Toast.LENGTH_LONG).show();
                     return;
                 }
-                String url = getString(R.string.twilio_api) + "&text=" + Uri.encode("ch_num "+String.valueOf(AccountUtils.getProfile().id+" [nomor baru anda]"));
+                String url = getString(R.string.twilio_api) + "&text=" + Uri.encode("unauth "+String.valueOf(AccountUtils.getProfile().id));
 
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(Uri.parse(url));
                 startActivity(intent);
+                finishAffinity();
             });
 
             botAuthBinding.tvTitle.setText("Ganti nomor");
-            botAuthBinding.tvDescription.setText("Jika anda ingin mengubah nomor yang tertaut di akun ini, maka anda harus melakukan pemindahan nomor melalui Bot WhatsApp dengan menggunakan akun yang sebelum nya sudah tertaut!");
+            botAuthBinding.tvDescription.setText("Jika anda ingin mengubah nomor yang tertaut di akun ini, maka anda harus menghapus autentikasi nomor melalui Bot WhatsApp dengan menggunakan akun yang sebelum nya sudah tertaut!");
             botAuthBinding.handle.setVisibility(View.VISIBLE);
             binding.imgEditNum.setOnClickListener(v -> {
                 dialog.setContentView(botAuthBinding.getRoot());

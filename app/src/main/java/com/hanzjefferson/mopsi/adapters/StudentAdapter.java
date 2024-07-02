@@ -35,6 +35,10 @@ public class StudentAdapter extends ListAdapter<Student, StudentAdapter.ViewHold
 
         attachOnClickListener(holder.binding.getRoot(), student, position);
         holder.binding.tvName.setText(student.student);
+        holder.binding.tvTotal.setText("Jumlah poin: "+(String.valueOf(student.total_poin).startsWith("-")? String.valueOf(student.total_poin) : "+" + String.valueOf(student.total_poin)));
+        if (student.total_poin > 0) holder.binding.tvTotal.setTextColor(getContext().getColor(android.R.color.holo_green_dark));
+        else if (student.total_poin < -10) holder.binding.tvTotal.setTextColor(getContext().getColor(android.R.color.holo_orange_dark));
+        else if (student.total_poin < -50) holder.binding.tvTotal.setTextColor(getContext().getColor(android.R.color.holo_red_dark));
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder{

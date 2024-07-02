@@ -23,17 +23,9 @@ import java.util.Arrays;
 
 public class PoinAdapter extends ListAdapter<Poin, PoinAdapter.ViewHolder> {
     private boolean editable = false;
-    public int unsavedLength = 0;
 
     public PoinAdapter(Context context) {
         super(context);
-    }
-
-    @Override
-    public Poin onItemSearch(Poin model) {
-        if (model.tanggal.toLowerCase().contains(getSearchQuery()) || model.keterangan.toLowerCase().contains(getSearchQuery()) || String.valueOf(model.bobot).contains(getSearchQuery()))
-            return model;
-        return null;
     }
 
     @Override
@@ -43,12 +35,10 @@ public class PoinAdapter extends ListAdapter<Poin, PoinAdapter.ViewHolder> {
     }
 
     @Override
-    public Poin getItemModel(int index) {
-        if (editable){
-            if (index < unsavedLength) return super.getItemModel((getItemCount()-1)-index);
-            return super.getItemModel(index-unsavedLength);
-        }
-        return super.getItemModel(index);
+    public Poin onItemSearch(Poin model) {
+        if (model.tanggal.toLowerCase().contains(getSearchQuery()) || model.keterangan.toLowerCase().contains(getSearchQuery()) || String.valueOf(model.bobot).contains(getSearchQuery()))
+            return model;
+        return null;
     }
 
     public void setEditable(boolean state){
@@ -62,7 +52,6 @@ public class PoinAdapter extends ListAdapter<Poin, PoinAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        boolean isUnsaved = editable && position < unsavedLength;
         Poin poin = getItemModel(position);
 
         /*if (position == 0) {
@@ -81,29 +70,11 @@ public class PoinAdapter extends ListAdapter<Poin, PoinAdapter.ViewHolder> {
         if (editable) attachOnClickListener(holder.binding.getRoot(), poin, position);
         else holder.binding.getRoot().setOnClickListener(null);
         holder.binding.indicator.setBackground(getContext().getDrawable(poin.bobot < 0? R.drawable.negative_indicator : R.drawable.positive_indicator));
-        if (!isUnsaved) {
-            holder.binding.tvKeterangan.setTypeface(Typeface.create(ResourcesCompat.getFont(getContext(), R.font.inter), Typeface.BOLD));
-            holder.binding.tvKeterangan.setText(poin.keterangan);
-        }
-        else holder.binding.tvKeterangan.setText(unsavedSpan(poin.keterangan));
+        holder.binding.tvKeterangan.setText(poin.keterangan);
         holder.binding.tvTanggal.setText(poin.tanggal);
         holder.binding.tvPoin.setText(String.valueOf(poin.bobot).startsWith("-")? String.valueOf(poin.bobot) : "+" + String.valueOf(poin.bobot));
         holder.binding.tvPoin.setTextColor(getContext().getColor(poin.bobot < 0? android.R.color.holo_red_dark : android.R.color.holo_green_dark));
     }
-
-    private SpannableStringBuilder unsavedSpan(String string){
-        SpannableStringBuilder builder = new SpannableStringBuilder();
-
-        SpannableString boldSpan = new SpannableString(string);
-        boldSpan.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, string.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        SpannableString colorSpan = new SpannableString(" (unsaved)");
-        colorSpan.setSpan(new ForegroundColorSpan(getContext().getColor(android.R.color.holo_red_dark)), 0, colorSpan.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        builder.append(boldSpan);
-        builder.append(colorSpan);
-        return builder;
-    }
-
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
         public ItemPoinBinding binding;

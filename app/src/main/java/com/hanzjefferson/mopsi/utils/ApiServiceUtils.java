@@ -214,9 +214,26 @@ public class ApiServiceUtils {
                 .build());
     }
 
+    public static void deleteRekap(CallbackListener<JsonObject> listener, String tanggal){
+        addRequest(RequestBuilder.newBuilder(JsonObject.class)
+                .method(Request.Method.DELETE)
+                .endpoint("rekap/poin/"+tanggal)
+                .headers(getAuthorizationHeader(AccountUtils.getToken()))
+                .listener(listener)
+                .build());
+    }
+
     public static void profile(CallbackListener<Profile> listener){
         addRequest(RequestBuilder.newBuilder(Profile.class)
                 .endpoint("profile")
+                .headers(getAuthorizationHeader(AccountUtils.getToken()))
+                .listener(listener)
+                .build());
+    }
+
+    public static void templatePoin(CallbackListener<Poin[]> listener){
+        addRequest(RequestBuilder.newBuilder(Poin[].class)
+                .endpoint("template/poin")
                 .headers(getAuthorizationHeader(AccountUtils.getToken()))
                 .listener(listener)
                 .build());

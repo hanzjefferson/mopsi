@@ -213,6 +213,7 @@
 
                     <ImageView
                         android:layout_width="28dp"
+                        android:visibility="gone"
                         android:layout_height="match_parent"
                         android:background="?selectableItemBackgroundBorderless"
                         android:src="@drawable/ic_edit" />
@@ -265,6 +266,7 @@
                     <ImageView
                         android:layout_width="28dp"
                         android:layout_height="match_parent"
+                        android:visibility="gone"
                         android:background="?selectableItemBackgroundBorderless"
                         android:src="@drawable/ic_edit" />
                 </LinearLayout>
@@ -313,6 +315,7 @@
                     </LinearLayout>
 
                     <ImageView
+                        android:id="@+id/img_edit_num"
                         android:layout_width="28dp"
                         android:layout_height="match_parent"
                         android:background="?selectableItemBackgroundBorderless"

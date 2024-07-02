@@ -75,6 +75,27 @@
         android:textAppearance="?textAppearanceTitleMedium"
         android:textColor="?colorOnSurface" />
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:layout_marginBottom="2dp"
+        android:text="Total Poin"
+        android:textAppearance="?textAppearanceTitleSmall"
+        android:textStyle="bold"
+        android:textColor="?colorPrimary" />
+    <TextView
+        android:id="@+id/tv_total"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:layout_marginBottom="16dp"
+        android:maxLines="1"
+        android:text="Total Poin"
+        android:textAppearance="?textAppearanceTitleMedium"
+        android:textColor="?colorOnSurface" />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/button_info"
         android:layout_width="match_parent"

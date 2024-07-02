@@ -19,7 +19,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingBottom="4dp"
                 android:background="?colorSurface">
                 <HorizontalScrollView
                     android:layout_width="match_parent"
@@ -81,6 +80,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:paddingHorizontal="16dp"
+                        android:layout_marginBottom="8dp"
                         android:orientation="horizontal">
                         <TextView
                             android:layout_width="0dp"
@@ -96,8 +96,52 @@
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
-
-
+            <LinearLayout
+                android:id="@+id/layout_navigation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <LinearLayout
+                    android:id="@+id/layout_add"
+                    android:background="?selectableItemBackground"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:padding="14dp"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        app:tint="?colorPrimary"
+                        android:src="@drawable/ic_add"/>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:textAppearance="?textAppearanceBodyLarge"
+                        android:text="@string/poin_menu_add" />
+                </LinearLayout>
+                <LinearLayout
+                    android:id="@+id/layout_write"
+                    android:background="?selectableItemBackground"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:padding="14dp"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        app:tint="@android:color/holo_green_dark"
+                        android:src="@drawable/ic_save_as"/>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:textAppearance="?textAppearanceBodyLarge"
+                        android:text="Publikasikan Rekap" />
+                </LinearLayout>
+            </LinearLayout>
             <com.github.ybq.android.spinkit.SpinKitView
                 android:id="@+id/spin_kit_view"
                 android:visibility="gone"
@@ -134,8 +178,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="end|bottom"
         android:layout_margin="24dp"
-        android:visibility="gone"
+        app:backgroundTint="?colorError"
+        app:tint="?colorOnError"
         app:hoveredFocusedTranslationZ="@null"
         app:pressedTranslationZ="@null"
-        app:srcCompat="@drawable/ic_menu" />
+        app:srcCompat="@drawable/ic_delete" />
 </FrameLayout>

@@ -5,4 +5,5 @@ public class Student {
     public int parent_id;
     public int class_id;
     public String student;
+    public int total_poin;
 }

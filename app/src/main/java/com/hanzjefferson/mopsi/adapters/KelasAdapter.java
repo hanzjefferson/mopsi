@@ -23,6 +23,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class KelasAdapter extends ListAdapter<Kelas, KelasAdapter.ViewHolder>{
     private onItemClickListener<Student> studentOnItemClickListener;
 
+    private boolean hideClass = false;
+
     public KelasAdapter(Context context) {
         super(context);
     }
@@ -35,6 +37,10 @@ public class KelasAdapter extends ListAdapter<Kelas, KelasAdapter.ViewHolder>{
         this.studentOnItemClickListener = studentOnItemClickListener;
     }
 
+    public void setHideClass(boolean state){
+        this.hideClass = state;
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -44,22 +50,29 @@ public class KelasAdapter extends ListAdapter<Kelas, KelasAdapter.ViewHolder>{
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Kelas kelas = getItemModel(position);
-        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(getContext());
-        SheetClassBinding sheetClassBinding = SheetClassBinding.inflate(getLayoutInflater());
-        sheetClassBinding.tvName.setText(kelas.name);
-        sheetClassBinding.tvTeacher.setText(kelas.teacher.full_name);
-        sheetClassBinding.tvJumlah.setText(String.valueOf(kelas.members.length));
-        Intent viewProfileIntent = new Intent(getContext(), ProfileActivity.class);
-        viewProfileIntent.putExtra("view_profile", new Gson().toJson(kelas.teacher));
-        sheetClassBinding.buttonInfo.setOnClickListener(v -> {
-            bottomSheetDialog.dismiss();
-            getContext().startActivity(viewProfileIntent);
-        });
-        bottomSheetDialog.setContentView(sheetClassBinding.getRoot());
-        bottomSheetDialog.setCancelable(true);
+        if (!hideClass){
+            BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(getContext());
+            SheetClassBinding sheetClassBinding = SheetClassBinding.inflate(getLayoutInflater());
+            sheetClassBinding.tvName.setText(kelas.name);
+            sheetClassBinding.tvTeacher.setText(kelas.teacher.full_name);
+            sheetClassBinding.tvJumlah.setText(String.valueOf(kelas.members.length));
+            int totalPoin = Arrays.stream(kelas.members).mapToInt(student -> student.total_poin).sum();
+            sheetClassBinding.tvTotal.setText(String.valueOf(totalPoin).startsWith("-")? String.valueOf(totalPoin) : "+" + String.valueOf(totalPoin));
+            if (totalPoin > 0) sheetClassBinding.tvTotal.setTextColor(getContext().getColor(android.R.color.holo_green_dark));
+            else if (totalPoin < -10) sheetClassBinding.tvTotal.setTextColor(getContext().getColor(android.R.color.holo_orange_dark));
+            else if (totalPoin < -50) sheetClassBinding.tvTotal.setTextColor(getContext().getColor(android.R.color.holo_red_dark));
+            Intent viewProfileIntent = new Intent(getContext(), ProfileActivity.class);
+            viewProfileIntent.putExtra("view_profile", new Gson().toJson(kelas.teacher));
+            sheetClassBinding.buttonInfo.setOnClickListener(v -> {
+                bottomSheetDialog.dismiss();
+                getContext().startActivity(viewProfileIntent);
+            });
+            bottomSheetDialog.setContentView(sheetClassBinding.getRoot());
+            bottomSheetDialog.setCancelable(true);
 
-        holder.binding.tvName.setText("Kelas "+kelas.name);
-        holder.binding.tvName.setOnClickListener(v -> bottomSheetDialog.show());
+            holder.binding.tvName.setText("Kelas "+kelas.name);
+            holder.binding.tvName.setOnClickListener(v -> bottomSheetDialog.show());
+        } else holder.binding.tvName.setVisibility(View.GONE);
 
         if (kelas.members.length == 0){
             holder.binding.tvNone.setVisibility(View.VISIBLE);

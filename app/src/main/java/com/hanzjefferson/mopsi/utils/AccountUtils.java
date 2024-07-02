@@ -54,6 +54,7 @@ public class AccountUtils {
     }
 
     public static void clearState() {
+        AccountUtils.profile = null;
         AccountUtils.context.getSharedPreferences("auth", Context.MODE_PRIVATE).edit().clear().apply();
     }
 }

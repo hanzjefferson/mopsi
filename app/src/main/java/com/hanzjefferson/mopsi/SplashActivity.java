@@ -1,5 +1,8 @@
 package com.hanzjefferson.mopsi;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -122,6 +125,15 @@ public class SplashActivity extends AppCompatActivity {
             });
         });
 
+        botAuthBinding.buttonCopy.setOnClickListener(v -> {
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            clipboard.addPrimaryClipChangedListener(()->{
+                Toast.makeText(getApplicationContext(), "Copied!", Toast.LENGTH_SHORT);
+            });
+            ClipData clip = ClipData.newPlainText("MOPSI Command", "auth "+String.valueOf(AccountUtils.getProfile().id+" "+AccountUtils.getToken()));
+            clipboard.setPrimaryClip(clip);
+        });
+
         botAuthBinding.buttonSend.setOnClickListener(v -> {
             if (AccountUtils.getProfile() == null){
                 Toast.makeText(getApplicationContext(), "Anda belum login!", Toast.LENGTH_LONG).show();
@@ -131,12 +143,7 @@ public class SplashActivity extends AppCompatActivity {
 
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setData(Uri.parse(url));
-
-            if (intent.resolveActivity(getPackageManager()) != null) {
-                startActivity(intent);
-            } else {
-                Toast.makeText(this, "WhatsApp belum terpasang!", Toast.LENGTH_SHORT).show();
-            }
+            startActivity(intent);
         });
 
         AccountUtils.init(this);

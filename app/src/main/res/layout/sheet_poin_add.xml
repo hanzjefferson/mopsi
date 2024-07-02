@@ -65,6 +65,17 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_template"
+        style="@style/Widget.Material3.Button.OutlinedButton.Icon"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Gunakan Template"
+        app:strokeColor="?colorPrimary"
+        android:layout_marginBottom="8dp"
+        app:icon="@drawable/ic_star"
+        app:iconGravity="textStart" />
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/button_add"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

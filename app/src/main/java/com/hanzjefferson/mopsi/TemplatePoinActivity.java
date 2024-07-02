@@ -7,30 +7,37 @@ import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.recyclerview.widget.DividerItemDecoration;
 
 import com.android.volley.VolleyError;
 import com.blogspot.atifsoftwares.animatoolib.Animatoo;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.hanzjefferson.mopsi.adapters.KelasAdapter;
-import com.hanzjefferson.mopsi.databinding.ActivityStudentManagerBinding;
-import com.hanzjefferson.mopsi.models.Kelas;
+import com.google.gson.Gson;
+import com.hanzjefferson.mopsi.adapters.AnnouncementAdapter;
+import com.hanzjefferson.mopsi.adapters.TemplatePoinAdapter;
+import com.hanzjefferson.mopsi.databinding.ActivityAnnouncementsBinding;
+import com.hanzjefferson.mopsi.databinding.ActivityTemplatePoinBinding;
+import com.hanzjefferson.mopsi.models.Announcement;
+import com.hanzjefferson.mopsi.models.Poin;
 import com.hanzjefferson.mopsi.models.Response;
-import com.hanzjefferson.mopsi.utils.AccountUtils;
 import com.hanzjefferson.mopsi.utils.ApiServiceUtils;
+import com.hanzjefferson.mopsi.utils.SocketUtils;
 
-public class StudentManagerActivity extends AppCompatActivity {
-    private ActivityStudentManagerBinding binding;
-    private KelasAdapter adapter;
+public class TemplatePoinActivity extends AppCompatActivity {
+    private ActivityTemplatePoinBinding binding;
+    private TemplatePoinAdapter adapter;
     private SearchView searchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityStudentManagerBinding.inflate(getLayoutInflater());
+        binding = ActivityTemplatePoinBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         setSupportActionBar(binding.materialToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         binding.materialToolbar.setNavigationOnClickListener(v -> finish());
+
+        binding.recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
 
         fetch();
     }
@@ -39,14 +46,14 @@ public class StudentManagerActivity extends AppCompatActivity {
         binding.recyclerView.setVisibility(View.GONE);
         binding.spinKit.setVisibility(View.VISIBLE);
 
-        ApiServiceUtils.getClasses(new ApiServiceUtils.CallbackListener<Kelas[]>() {
+        ApiServiceUtils.templatePoin(new ApiServiceUtils.CallbackListener<Poin[]>() {
 
             @Override
-            public void onResponse(Response<Kelas[]> response) {
+            public void onResponse(Response<Poin[]> response) {
                 if (response.isSuccess()) {
                     binding.spinKit.setVisibility(View.GONE);
                     handleData(response.data);
-                } else new MaterialAlertDialogBuilder(StudentManagerActivity.this)
+                } else new MaterialAlertDialogBuilder(TemplatePoinActivity.this)
                         .setTitle("Terjadi kesalahan!")
                         .setMessage(response.message)
                         .setPositiveButton("Coba lagi", (d, w) -> fetch())
@@ -56,7 +63,7 @@ public class StudentManagerActivity extends AppCompatActivity {
 
             @Override
             public void onError(VolleyError error) {
-                new MaterialAlertDialogBuilder(StudentManagerActivity.this)
+                new MaterialAlertDialogBuilder(TemplatePoinActivity.this)
                         .setTitle("Terjadi kesalahan!")
                         .setMessage(error.getMessage())
                         .setPositiveButton("Coba lagi", (d, w) -> fetch())
@@ -66,35 +73,25 @@ public class StudentManagerActivity extends AppCompatActivity {
         });
     }
 
-    private void handleData(Kelas[] kelas){
-        if (kelas.length > 0){
+    private void handleData(Poin[] poins) {
+        if (poins.length > 0){
             binding.recyclerView.setVisibility(View.VISIBLE);
+            binding.tvNoItem.setVisibility(View.GONE);
             if (adapter == null) {
-                adapter = new KelasAdapter(StudentManagerActivity.this, kelas);
-                if (AccountUtils.getProfile().role_id == 2 || AccountUtils.getProfile().role_id == 4) adapter.setHideClass(true);
-                adapter.setStudentOnItemClickListener((v, m, i) -> {
+                adapter = new TemplatePoinAdapter(TemplatePoinActivity.this, poins);
+                adapter.setOnItemClickListener((v, m, i)->{
                     Intent intent = new Intent();
-                    intent.putExtra("id", m.account_id);
-                    intent.putExtra("query", adapter.getSearchQuery());
+                    intent.putExtra("template", new Gson().toJson(m));
                     setResult(RESULT_OK, intent);
-                    super.finish();
+                    finish();
                 });
                 binding.recyclerView.setAdapter(adapter);
-
-                String query = getIntent().getStringExtra("query");
-                if (query != null) {
-                    adapter.setSearchQuery(query);
-                    if (adapter.getItemModels().isEmpty()) {
-                        binding.tvNoAnnouncement.setVisibility(View.VISIBLE);
-                    } else {
-                        binding.tvNoAnnouncement.setVisibility(View.GONE);
-                    }
-                }
             } else {
-                adapter.update(kelas);
+                adapter.update(poins);
             }
-        }else{
-            binding.tvNoAnnouncement.setVisibility(View.VISIBLE);
+        }else {
+            binding.recyclerView.setVisibility(View.GONE);
+            binding.tvNoItem.setVisibility(View.VISIBLE);
         }
     }
 
@@ -114,30 +111,21 @@ public class StudentManagerActivity extends AppCompatActivity {
                 if (adapter != null){
                     adapter.setSearchQuery(newText);
                     if (adapter.getItemModels().isEmpty()) {
-                        binding.tvNoAnnouncement.setVisibility(View.VISIBLE);
+                        binding.tvNoItem.setVisibility(View.VISIBLE);
                     } else {
-                        binding.tvNoAnnouncement.setVisibility(View.GONE);
+                        binding.tvNoItem.setVisibility(View.GONE);
                     }
                 }
                 return false;
             }
         });
         searchView.setQueryHint("Cari sesuatu...");
-
-        String query = getIntent().getStringExtra("query");
-        if (query != null && !query.isEmpty()) {
-            searchView.onActionViewExpanded();
-            searchView.setQuery(query, false);
-        }
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public void finish() {
         Animatoo.INSTANCE.animateSlideRight(this);
-        Intent intent = new Intent();
-        intent.putExtra("query", adapter.getSearchQuery());
-        setResult(RESULT_CANCELED, intent);
         super.finish();
     }
 }

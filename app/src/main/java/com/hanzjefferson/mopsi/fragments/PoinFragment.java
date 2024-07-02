@@ -1,5 +1,8 @@
 package com.hanzjefferson.mopsi.fragments;
 
+import static android.app.Activity.RESULT_OK;
+
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -7,6 +10,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.recyclerview.widget.DividerItemDecoration;
 
 import com.android.volley.VolleyError;
@@ -20,6 +27,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.hanzjefferson.mopsi.R;
+import com.hanzjefferson.mopsi.TemplatePoinActivity;
 import com.hanzjefferson.mopsi.adapters.PoinAdapter;
 import com.hanzjefferson.mopsi.databinding.FragmentPoinBinding;
 import com.hanzjefferson.mopsi.databinding.SheetPoinAddBinding;
@@ -51,8 +59,10 @@ public class PoinFragment extends RekapitulasiFragment {
     private Map<String, Poin[]> data = new HashMap<>();
     private PoinAdapter adapter;
     private String tanggal = "";
-    private SheetPoinMenuBinding menuBinding;
-    private BottomSheetDialog menuSheetDialog;
+    private ActivityResultLauncher templatePoinLauncher;
+    private BottomSheetDialog bottomSheetDialog;
+    private SheetPoinEditBinding editBinding;
+    private SheetPoinAddBinding navAddBinding;
 
 
     @Override
@@ -64,11 +74,24 @@ public class PoinFragment extends RekapitulasiFragment {
 
         binding.recyclerView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
 
+        bottomSheetDialog = new BottomSheetDialog(getContext());
+        editBinding = SheetPoinEditBinding.inflate(getLayoutInflater());
+        navAddBinding = SheetPoinAddBinding.inflate(getLayoutInflater());
+
+        templatePoinLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult o) {
+                if (o.getResultCode() == RESULT_OK){
+                    Poin poin = new Gson().fromJson(o.getData().getStringExtra("template"), Poin.class);
+                    if (poin != null){
+                        navAddBinding.inputBobot.setText(String.valueOf(poin.bobot));
+                        navAddBinding.inputKeterangan.setText(poin.keterangan);
+                    }
+                }
+            }
+        });
         adapter = new PoinAdapter(getContext());
         adapter.setOnItemClickListener((view, poin1, position) -> {
-            int index = adapter.getItemModels().indexOf(poin1);
-            BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(getContext());
-            SheetPoinEditBinding editBinding = SheetPoinEditBinding.inflate(getLayoutInflater());
             editBinding.inputBobot.setText(String.valueOf(poin1.bobot));
             editBinding.inputBobot.addTextChangedListener(new TextWatcher() {
                 @Override
@@ -111,44 +134,10 @@ public class PoinFragment extends RekapitulasiFragment {
                         .setMessage("Apakah anda yakin ingin menghapus poin ini?")
                         .setPositiveButton("Ya", ((dialog, which) -> {
                             bottomSheetDialog.cancel();
+                            setLoading(true);
                             List<Poin> poinList = adapter.getItemModels();
-                            poinList.remove(index);
-                            data.put("prerekap", poinList.toArray(new Poin[0]));
-
-                            if (index >= adapter.unsavedLength) {
-                                binding.recyclerView.setVisibility(View.GONE);
-                                binding.spinKitView.setVisibility(View.VISIBLE);
-                                binding.tvNone.setVisibility(View.GONE);
-
-                                if (poinList.size() > adapter.unsavedLength) {
-                                    poinList.subList(poinList.size()-adapter.unsavedLength, poinList.size()).clear();
-                                }
-                                ApiServiceUtils.saveRekap(new ApiServiceUtils.CallbackListener<JsonObject>() {
-                                    @Override
-                                    public void onResponse(Response<JsonObject> response) {
-                                        if (response.isSuccess()) adapter.unsavedLength = 0;
-                                        else renderData();
-                                        new MaterialAlertDialogBuilder(getContext())
-                                                .setTitle(response.isSuccess()? "Berhasil":"Gagal")
-                                                .setMessage((response.isSuccess()? "":"Gagal menghapus rekap: ")+response.message)
-                                                .setPositiveButton("OK", null)
-                                                .show();
-                                    }
-
-                                    @Override
-                                    public void onError(VolleyError error) {
-                                        renderData();
-
-                                        new MaterialAlertDialogBuilder(getContext())
-                                                .setTitle("Kesalahan Klien")
-                                                .setMessage(error.getMessage())
-                                                .setPositiveButton("OK", null)
-                                                .show();
-                                    }
-                                }, id, unique, poinList.toArray(new Poin[0]));
-                                return;
-                            }else adapter.unsavedLength--;
-                            renderData();
+                            poinList.remove(position);
+                            saveUnPub(poinList.toArray(new Poin[0]));
                         }))
                         .setNegativeButton("Tidak", null)
                         .show();
@@ -165,44 +154,8 @@ public class PoinFragment extends RekapitulasiFragment {
                             poin1.tanggal = editBinding.inputTanggal.getText().toString();
 
                             List<Poin> poinList = adapter.getItemModels();
-                            poinList.set(index, poin1);
-                            data.put("prerekap", poinList.toArray(new Poin[0]));
-
-                            if (index >= adapter.unsavedLength) {
-                                binding.recyclerView.setVisibility(View.GONE);
-                                binding.spinKitView.setVisibility(View.VISIBLE);
-                                binding.tvNone.setVisibility(View.GONE);
-
-                                if (poinList.size() > adapter.unsavedLength) {
-                                    poinList.subList(poinList.size()-adapter.unsavedLength, poinList.size()).clear();
-                                }
-                                ApiServiceUtils.saveRekap(new ApiServiceUtils.CallbackListener<JsonObject>() {
-                                    @Override
-                                    public void onResponse(Response<JsonObject> response) {
-                                        if (response.isSuccess()) adapter.unsavedLength = 0;
-                                        else renderData();
-                                        new MaterialAlertDialogBuilder(getContext())
-                                                .setTitle(response.isSuccess()? "Berhasil":"Gagal")
-                                                .setMessage((response.isSuccess()? "":"Gagal mengedit rekap: ")+response.message)
-                                                .setPositiveButton("OK", null)
-                                                .show();
-                                    }
-
-                                    @Override
-                                    public void onError(VolleyError error) {
-                                        renderData();
-
-                                        new MaterialAlertDialogBuilder(getContext())
-                                                .setTitle("Kesalahan Klien")
-                                                .setMessage(error.getMessage())
-                                                .setPositiveButton("OK", null)
-                                                .show();
-                                    }
-                                }, id, unique, poinList.toArray(new Poin[0]));
-                                return;
-                            }
-                            renderData();
-
+                            poinList.set(position, poin1);
+                            saveUnPub(poinList.toArray(new Poin[0]));
                         }))
                         .setNegativeButton("Tidak", null)
                         .show();
@@ -216,85 +169,53 @@ public class PoinFragment extends RekapitulasiFragment {
 
         if (data != null) renderData();
 
+        binding.layoutAdd.setOnClickListener(v->addPoin());
+        binding.layoutWrite.setOnClickListener(v->writeUnPub());
+
         binding.chipGroup.setOnCheckedStateChangeListener((chipGroup, list) -> {
             Chip chip = chipGroup.findViewById(chipGroup.getCheckedChipId());
             String chipText = chip.getText().toString();
-            if (chipText.equals("Pre-rekap")) chipText = "prerekap";
+            if (chipText.equals("Unpublished")) chipText = "unpublished";
             changeRekap(chipText);
         });
 
-        menuBinding = SheetPoinMenuBinding.inflate(inflater);
-        menuSheetDialog = new BottomSheetDialog(getContext());
-        menuSheetDialog.setContentView(menuBinding.getRoot());
-        menuSheetDialog.setCancelable(true);
+        binding.fab.setOnClickListener(v -> deleteRekap());
 
-        menuBinding.layoutAdd.setOnClickListener(v -> menuAdd());
-        menuBinding.layoutWrite.setOnClickListener(v -> menuWrite());
-        menuBinding.layoutSave.setOnClickListener(v -> menuSave());
-        menuBinding.layoutDelete.setOnClickListener(v -> menuDelete());
-
-        binding.fab.setOnClickListener(v -> {
-            if (adapter.unsavedLength == 0){
-                menuBinding.layoutSave.setVisibility(View.GONE);
-                menuBinding.layoutWrite.setVisibility(View.VISIBLE);
-            }else{
-                menuBinding.layoutSave.setVisibility(View.VISIBLE);
-                menuBinding.layoutWrite.setVisibility(View.GONE);
-            }
-
-            if (AccountUtils.getProfile().role_id != 5){
-                menuBinding.layoutWrite.setVisibility(View.GONE);
-                menuBinding.layoutDelete.setVisibility(View.GONE);
-            }
-            menuSheetDialog.show();
-        });
-
-        SocketUtils.on("prerekap", new TypeToken<Map<String, Map<String, Poin[]>>>(){}.getType(), (Map<String, Map<String, Poin[]>> data) -> {
+        SocketUtils.on("rekap", JsonObject.class, (JsonObject data) -> {
             getActivity().runOnUiThread(() -> {
-                if (data.containsKey(unique)) this.data.put("prerekap", data.get(unique).get(String.valueOf(id)));
-                else this.data.put("prerekap", new Poin[0]);
+                setLoading(false);
+                if (data == null) return;
+                this.data.clear();
+                for (String tanggal : data.keySet()) {
+                    this.data.put(tanggal, new Poin[0]);
+                    JsonObject tanggalObject = data.get(tanggal).getAsJsonObject();
+                    if (tanggalObject.has(unique)) {
+                        JsonObject uniqueObject = tanggalObject.getAsJsonObject(unique);
+                        if (uniqueObject.has(String.valueOf(id))) {
+                            Poin[] poinArray = new Gson().fromJson(uniqueObject.get(String.valueOf(id)), Poin[].class);
+                            this.data.put(tanggal, poinArray);
+                        }
+                    }
+                }
                 renderData();
             });
         });
 
-        SocketUtils.on("prerekap/write", (Object[] data) -> {
+        /*SocketUtils.on("unpublished", JsonObject.class, (JsonObject data) -> {
             getActivity().runOnUiThread(() -> {
-                if (this.data.containsKey("prerekap")){
-                    this.data.remove("prerekap");
-                    this.tanggal = (String) data[0];
-                    Map<String, Map<String, Poin[]>> poin = new Gson().fromJson((String) data[1], new TypeToken<Map<String, Map<String, Poin[]>>>(){}.getType());
-                    if (poin.containsKey(unique)){
-                        adapter.unsavedLength = 0;
-                        this.data.put(this.tanggal, poin.get(unique).get(String.valueOf(id)));
-                    }
-                    renderData();
-                }
-            });
-        });
+                setLoading(false);
+                if (data == null);
+                int unpubId = data.has("id")? data.get("id").getAsInt() : -1;
+                String unpubUnique = data.has("unique")? data.get("unique").getAsString() : null;
+                Poin[] unpubPoin = data.has("data")? new Gson().fromJson(data.get("data"), Poin[].class) : null;
 
-        SocketUtils.on("prerekap/delete", (Object[] data) -> {
-            getActivity().runOnUiThread(() -> {
-                if (this.data.containsKey("prerekap")){
-                    this.data.remove("prerekap");
-                    renderData();
+                if (unpubId != -1 && unpubUnique != null && unpubPoin != null){
+                    if (this.data.containsKey("unpublished")) this.data.remove("unpublished");
+                    this.data.put("unpublished", unpubPoin);
                 }
             });
-        });
+        });*/
         return binding.getRoot();
-    }
-
-    @Override
-    public boolean onItemSearch(String query) {
-        if (adapter != null) {
-            adapter.setSearchQuery(query);
-            if (adapter.getItemModels().isEmpty()) {
-                binding.tvNone.setVisibility(View.VISIBLE);
-            } else {
-                binding.tvNone.setVisibility(View.GONE);
-            }
-            return true;
-        }
-        return super.onItemSearch(query);
     }
 
     @Override
@@ -312,11 +233,11 @@ public class PoinFragment extends RekapitulasiFragment {
 
         int i = 0;
         boolean foundTanggal = false;
-        boolean therePreRekap = false;
+        boolean thereUnpub = false;
         for (String key : data.keySet()){
             if (key.equals(tanggal)) foundTanggal = true;
-            if (key.equals("prerekap")) {
-                therePreRekap = true;
+            if (key.equals("unpublished")) {
+                thereUnpub = true;
                 continue;
             }
 
@@ -332,13 +253,14 @@ public class PoinFragment extends RekapitulasiFragment {
         }
 
         int selected = 0;
-        if (therePreRekap) {
+        int roleId = AccountUtils.getProfile().role_id;
+        if (thereUnpub && (roleId == 2 || roleId == 4 || roleId == 5)) {
             if (!foundTanggal) {
                 foundTanggal = true;
-                tanggal = "prerekap";
+                tanggal = "unpublished";
             }
             Chip chip = new Chip(getContext());
-            chip.setText("Pre-rekap");
+            chip.setText("Unpublished");
             chip.setCheckable(true);
             chip.setClickable(true);
             chip.setChecked(foundTanggal);
@@ -366,7 +288,6 @@ public class PoinFragment extends RekapitulasiFragment {
 
         Collections.reverse(chipList);
         if (!foundTanggal && selected < chipList.size()){
-            System.out.print("sisi");
             tanggal = chipList.get(selected).getText().toString();
             chipList.get(selected).setChecked(true);
         }
@@ -375,50 +296,43 @@ public class PoinFragment extends RekapitulasiFragment {
             binding.chipGroup.addView(chip);
         }
 
-        if (i > 0 || therePreRekap){
+        if (i > 0 || thereUnpub){
+            binding.fab.setVisibility(View.VISIBLE);
             changeRekap(tanggal);
         }else {
-            binding.recyclerView.setVisibility(View.GONE);
-            binding.spinKitView.setVisibility(View.GONE);
-            binding.tvNone.setVisibility(View.VISIBLE);
+            setNone(true);
+            binding.layoutInfo.setVisibility(View.GONE);
+            binding.layoutNavigation.setVisibility(View.GONE);
+            binding.fab.setVisibility(View.GONE);
         }
     }
 
     private void newRekap(){
         String tanggalBackup = tanggal;
-        tanggal = "prerekap";
-        data.put("prerekap", new Poin[0]);
-        renderData();
+        tanggal = "unpublished";
+        data.put("unpublished", new Poin[0]);
 
-        binding.recyclerView.setVisibility(View.GONE);
-        binding.spinKitView.setVisibility(View.VISIBLE);
-        binding.tvNone.setVisibility(View.GONE);
+        setLoading(true);
         ApiServiceUtils.newRekap(new ApiServiceUtils.CallbackListener<JsonObject>() {
             @Override
             public void onResponse(Response<JsonObject> response) {
-                if (response.isSuccess()){
-                    new MaterialAlertDialogBuilder(getContext())
-                            .setTitle("Berhasil")
-                            .setMessage("Rekap baru berhasil dibuat")
-                            .setPositiveButton("OK", null)
-                            .show();
-                }else{
+                if (!response.isSuccess()){
+                    setLoading(false);
                     tanggal = tanggalBackup;
-                    data.remove("prerekap");
-                    renderData();
-                    new MaterialAlertDialogBuilder(getContext())
-                            .setTitle("Gagal")
-                            .setMessage("Gagal membuat rekap baru, "+response.message)
-                            .setPositiveButton("OK", null)
-                            .show();
+                    data.remove("unpublished");
                 }
+                new MaterialAlertDialogBuilder(getContext())
+                        .setTitle(response.isSuccess()? "Berhasil":"Gagal")
+                        .setMessage((response.isSuccess()? "":"Gagal menyimpan rekap: ")+response.message)
+                        .setPositiveButton("OK", null)
+                        .show();
             }
 
             @Override
             public void onError(VolleyError error) {
+                setLoading(false);
                 tanggal = tanggalBackup;
-                data.remove("prerekap");
-                renderData();
+                data.remove("unpublished");
                 new MaterialAlertDialogBuilder(getContext())
                         .setTitle("Kesalahan Klien")
                         .setMessage(error.getMessage())
@@ -429,30 +343,19 @@ public class PoinFragment extends RekapitulasiFragment {
     }
 
     private void changeRekap(String tanggal){
-        if (tanggal.equals("prerekap")) {
-            adapter.setEditable(AccountUtils.getProfile().role_id == 2 || AccountUtils.getProfile().role_id == 4 || AccountUtils.getProfile().role_id == 5);
-            binding.fab.show();
-        }
-        else {
-            adapter.setEditable(false);
-            binding.fab.hide();
-        }
+        this.tanggal = tanggal;
+        if (tanggal.equals("unpublished")) adapter.setEditable(AccountUtils.getProfile().role_id == 2 || AccountUtils.getProfile().role_id == 4 || AccountUtils.getProfile().role_id == 5);
+        else adapter.setEditable(false);
 
         Poin[] poin = new Poin[0];
 
         if (data.containsKey(tanggal)) poin = data.get(tanggal);
 
         if (poin == null || poin.length == 0){
-            binding.layoutInfo.setVisibility(View.GONE);
-            binding.spinKitView.setVisibility(View.GONE);
-            binding.recyclerView.setVisibility(View.GONE);
-            binding.tvNone.setVisibility(View.VISIBLE);
+            setNone(true);
             return;
         }else{
-            binding.layoutInfo.setVisibility(View.VISIBLE);
-            binding.spinKitView.setVisibility(View.GONE);
-            binding.recyclerView.setVisibility(View.VISIBLE);
-            binding.tvNone.setVisibility(View.GONE);
+            setNone(false);
 
             int jumlahPoin = 0;
             int poinPositif = 0;
@@ -470,10 +373,10 @@ public class PoinFragment extends RekapitulasiFragment {
         adapter.update(poin);
     }
 
-    private void menuAdd(){
-        menuSheetDialog.dismiss();
-        SheetPoinAddBinding menuAddBinding = SheetPoinAddBinding.inflate(getLayoutInflater());
-        menuAddBinding.inputBobot.addTextChangedListener(new TextWatcher() {
+    private void addPoin(){
+        navAddBinding.inputBobot.setText("");
+        navAddBinding.inputKeterangan.setText("");
+        navAddBinding.inputBobot.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
@@ -486,98 +389,102 @@ public class PoinFragment extends RekapitulasiFragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-                menuAddBinding.buttonAdd.setEnabled(!s.toString().equals("0")&&!s.toString().isEmpty());
+                navAddBinding.buttonAdd.setEnabled(!s.toString().equals("0")&&!s.toString().isEmpty());
             }
         });
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd");
         AtomicReference<Long> date = new AtomicReference<>(new Date().getTime());
 
-        menuAddBinding.inputTanggal.setText(dateFormat.format(new Date()));
-        menuAddBinding.inputTanggal.setOnClickListener(inp -> {
+        navAddBinding.inputTanggal.setText(dateFormat.format(new Date()));
+        navAddBinding.inputTanggal.setOnClickListener(inp -> {
             MaterialDatePicker<Long> materialDatePicker = MaterialDatePicker.Builder.datePicker()
                     .setCalendarConstraints(new CalendarConstraints.Builder().setValidator(DateValidatorPointBackward.now()).build())
                     .setSelection(date.get())
                     .build();
             materialDatePicker.addOnPositiveButtonClickListener(selection -> {
                 date.set(selection);
-                menuAddBinding.inputTanggal.setText(dateFormat.format(new Date(selection)));
+                navAddBinding.inputTanggal.setText(dateFormat.format(new Date(selection)));
             });
             materialDatePicker.show(getParentFragmentManager(), "date_picker");
         });
 
-        menuAddBinding.buttonAdd.setOnClickListener(btn -> {
-            Poin poin = new Poin();
-            poin.bobot = Integer.parseInt(menuAddBinding.inputBobot.getText().toString());
-            poin.keterangan = menuAddBinding.inputKeterangan.getText().toString();
-            poin.tanggal = menuAddBinding.inputTanggal.getText().toString();
-
-            if (data.containsKey("prerekap")){
-                List<Poin> list = new LinkedList<>(Arrays.asList(data.get("prerekap")));
-                list.add(poin);
-                adapter.unsavedLength++;
-                data.put("prerekap", list.toArray(new Poin[0]));
-                changeRekap("prerekap");
-            }
+        navAddBinding.buttonTemplate.setOnClickListener(btn->{
+            templatePoinLauncher.launch(new Intent(getContext(), TemplatePoinActivity.class));
         });
-        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(getContext());
-        bottomSheetDialog.setContentView(menuAddBinding.getRoot());
+        navAddBinding.buttonAdd.setOnClickListener(btn -> {
+            bottomSheetDialog.cancel();
+            Poin poin = new Poin();
+            poin.bobot = Integer.parseInt(navAddBinding.inputBobot.getText().toString());
+            poin.keterangan = navAddBinding.inputKeterangan.getText().toString();
+            poin.tanggal = navAddBinding.inputTanggal.getText().toString();
+
+            List<Poin> poinList = adapter.getItemModels();
+            poinList.add(0, poin);
+
+            navAddBinding.inputBobot.setText("");
+            navAddBinding.inputKeterangan.setText("");
+
+            saveUnPub(poinList.toArray(new Poin[0]));
+        });
+        bottomSheetDialog.setContentView(navAddBinding.getRoot());
         bottomSheetDialog.setCancelable(true);
         bottomSheetDialog.show();
+
+        templatePoinLauncher.launch(new Intent(getContext(), TemplatePoinActivity.class));
     }
 
-    private void menuSave(){
-        menuSheetDialog.dismiss();
-        new MaterialAlertDialogBuilder(getContext())
-                .setTitle("Konfirmasi")
-                .setMessage("Apakah anda yakin ingin menyimpan rekap ini?")
-                .setPositiveButton("Ya", ((dialog, which) -> {
-                    binding.recyclerView.setVisibility(View.GONE);
-                    binding.spinKitView.setVisibility(View.VISIBLE);
-                    binding.tvNone.setVisibility(View.GONE);
+    private void saveUnPub(Poin[] poinArr){
+        setLoading(true);
+        ApiServiceUtils.saveRekap(new ApiServiceUtils.CallbackListener<JsonObject>() {
+            @Override
+            public void onResponse(Response<JsonObject> response) {
+                setLoading(false);
+                if (response.isSuccess()) data.put(tanggal, poinArr);
+                renderData();
+                MaterialAlertDialogBuilder dialogBuilder = new MaterialAlertDialogBuilder(getContext())
+                        .setTitle(response.isSuccess()? "Berhasil":"Gagal")
+                        .setMessage((response.isSuccess()? "":"Gagal mengedit rekap: ")+response.message)
+                        .setPositiveButton(response.isSuccess()? "OK":"Coba Lagi", (d, i)->{
+                            if (!response.isSuccess()) saveUnPub(poinArr);
+                        });
+                if (!response.isSuccess()) dialogBuilder.setNegativeButton("Batal", null);
+                dialogBuilder.show();
+            }
 
-                    ApiServiceUtils.saveRekap(new ApiServiceUtils.CallbackListener<JsonObject>() {
-                        @Override
-                        public void onResponse(Response<JsonObject> response) {
-                            if (response.isSuccess()) adapter.unsavedLength = 0;
-                            else renderData();
-                            new MaterialAlertDialogBuilder(getContext())
-                                    .setTitle(response.isSuccess()? "Berhasil":"Gagal")
-                                    .setMessage((response.isSuccess()? "":"Gagal menyimpan rekap: ")+response.message)
-                                    .setPositiveButton("OK", null)
-                                    .show();
-                        }
+            @Override
+            public void onError(VolleyError error) {
+                setLoading(false);
+                renderData();
 
-                        @Override
-                        public void onError(VolleyError error) {
-                            renderData();
-
-                            new MaterialAlertDialogBuilder(getContext())
-                                    .setTitle("Kesalahan Klien")
-                                    .setMessage(error.getMessage())
-                                    .setPositiveButton("OK", null)
-                                    .show();
-                        }
-                    }, id, unique, adapter.getItemModels().toArray(new Poin[0]));
-                }))
-                .setNegativeButton("Tidak", null)
-                .show();
+                new MaterialAlertDialogBuilder(getContext())
+                        .setTitle("Kesalahan Klien")
+                        .setMessage(error.getMessage())
+                        .setPositiveButton("Coba lagi", (d, i)->{
+                            saveUnPub(poinArr);
+                        })
+                        .setNegativeButton("Batal", null)
+                        .show();
+            }
+        }, id, unique, poinArr);
     }
 
-    private void menuWrite(){
-        menuSheetDialog.dismiss();
+    private void writeUnPub(){
         new MaterialAlertDialogBuilder(getContext())
                 .setTitle("Konfirmasi")
-                .setMessage("Apakah anda yakin ingin menyimpan rekap ini (untuk selamanya)?")
+                .setMessage("Apakah anda yakin ingin mempublikasikan rekap ini?")
                 .setPositiveButton("Ya", ((dialog, which) -> {
-                    binding.recyclerView.setVisibility(View.GONE);
-                    binding.spinKitView.setVisibility(View.VISIBLE);
-                    binding.tvNone.setVisibility(View.GONE);
-
+                    String tanggalBackup = tanggal;
+                    tanggal = "";
+                    setLoading(true);
                     ApiServiceUtils.writeRekap(new ApiServiceUtils.CallbackListener<JsonObject>() {
                         @Override
                         public void onResponse(Response<JsonObject> response) {
-                            if (!response.isSuccess()) renderData();
+                            if (!response.isSuccess()) {
+                                setLoading(false);
+                                tanggal = tanggalBackup;
+                                renderData();
+                            }
                             new MaterialAlertDialogBuilder(getContext())
                                     .setTitle(response.isSuccess()? "Berhasil":"Gagal")
                                     .setMessage((response.isSuccess()? "":"Gagal menulis rekap: ")+response.message)
@@ -587,6 +494,8 @@ public class PoinFragment extends RekapitulasiFragment {
 
                         @Override
                         public void onError(VolleyError error) {
+                            setLoading(false);
+                            tanggal = tanggalBackup;
                             renderData();
 
                             new MaterialAlertDialogBuilder(getContext())
@@ -601,20 +510,23 @@ public class PoinFragment extends RekapitulasiFragment {
                 .show();
     }
 
-    private void menuDelete(){
-        menuSheetDialog.dismiss();
+    private void deleteRekap(){
         new MaterialAlertDialogBuilder(getContext())
                 .setTitle("Konfirmasi")
                 .setMessage("Apakah anda yakin ingin menghapus rekap ini?")
                 .setPositiveButton("Ya", (dialog, which) -> {
-                    binding.recyclerView.setVisibility(View.GONE);
-                    binding.spinKitView.setVisibility(View.VISIBLE);
-                    binding.tvNone.setVisibility(View.GONE);
+                    String tanggalBackup = tanggal;
+                    tanggal = "";
+                    setLoading(true);
 
-                    ApiServiceUtils.deleteRekap(new ApiServiceUtils.CallbackListener<JsonObject>() {
+                    ApiServiceUtils.CallbackListener<JsonObject> listener = new ApiServiceUtils.CallbackListener<JsonObject>() {
                         @Override
                         public void onResponse(Response<JsonObject> response) {
-                            if (!response.isSuccess()) renderData();
+                            if (!response.isSuccess()) {
+                                setLoading(false);
+                                tanggal = tanggalBackup;
+                                renderData();
+                            }
                             new MaterialAlertDialogBuilder(getContext())
                                     .setTitle(response.isSuccess()? "Berhasil":"Gagal")
                                     .setMessage((response.isSuccess()? "":"Gagal menghapus rekap: ")+response.message)
@@ -624,6 +536,8 @@ public class PoinFragment extends RekapitulasiFragment {
 
                         @Override
                         public void onError(VolleyError error) {
+                            setLoading(false);
+                            tanggal = tanggalBackup;
                             renderData();
 
                             new MaterialAlertDialogBuilder(getContext())
@@ -632,9 +546,56 @@ public class PoinFragment extends RekapitulasiFragment {
                                     .setPositiveButton("OK", null)
                                     .show();
                         }
-                    });
+                    };
+                    if (tanggalBackup.equals("unpublished")) ApiServiceUtils.deleteRekap(listener);
+                    else ApiServiceUtils.deleteRekap(listener, tanggalBackup);
                 })
                 .setNegativeButton("Tidak", null)
                 .show();
+    }
+
+    @Override
+    public boolean onItemSearch(String query) {
+        if (adapter != null) {
+            adapter.setSearchQuery(query);
+            if (adapter.getItemModels().isEmpty()) {
+                binding.tvNone.setVisibility(View.VISIBLE);
+            } else {
+                binding.tvNone.setVisibility(View.GONE);
+            }
+            return true;
+        }
+        return super.onItemSearch(query);
+    }
+
+    private void setLoading(boolean state){
+        if (state) {
+            binding.layoutInfo.setVisibility(View.GONE);
+            binding.chipGroup.setVisibility(View.GONE);
+            binding.recyclerView.setVisibility(View.GONE);
+            binding.spinKitView.setVisibility(View.VISIBLE);
+            binding.tvNone.setVisibility(View.GONE);
+            binding.layoutNavigation.setVisibility(View.GONE);
+        }else {
+            binding.layoutNavigation.setVisibility(View.VISIBLE);
+            if (!tanggal.equals("unpublished")) binding.layoutNavigation.setVisibility(View.GONE);
+            else if (AccountUtils.getProfile().role_id != 5) {
+                binding.layoutWrite.setVisibility(View.GONE);
+            }
+
+            binding.layoutInfo.setVisibility(View.VISIBLE);
+            binding.chipGroup.setVisibility(View.VISIBLE);
+            binding.recyclerView.setVisibility(View.VISIBLE);
+            binding.spinKitView.setVisibility(View.GONE);
+            binding.tvNone.setVisibility(View.GONE);
+        }
+    }
+
+    private void setNone(boolean state){
+        setLoading(false);
+        if (state){
+            binding.recyclerView.setVisibility(View.GONE);
+            binding.tvNone.setVisibility(View.VISIBLE);
+        }
     }
 }

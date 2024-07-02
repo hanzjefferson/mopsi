@@ -1,6 +1,10 @@
 package com.hanzjefferson.mopsi;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -8,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,6 +29,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.hanzjefferson.mopsi.databinding.ActivityProfileBinding;
 import com.hanzjefferson.mopsi.databinding.ItemStudentBinding;
+import com.hanzjefferson.mopsi.databinding.SheetBotAuthBinding;
 import com.hanzjefferson.mopsi.databinding.SheetPemanggilanBinding;
 import com.hanzjefferson.mopsi.models.Kelas;
 import com.hanzjefferson.mopsi.models.Profile;
@@ -39,6 +45,7 @@ public class ProfileActivity extends AppCompatActivity {
     private ActivityProfileBinding binding;
     private Profile profile;
     private SheetPemanggilanBinding pemanggilanBinding;
+    private SheetBotAuthBinding botAuthBinding;
     private BottomSheetDialog dialog;
     private boolean viewProfile = false;
 
@@ -47,6 +54,7 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityProfileBinding.inflate(getLayoutInflater());
         pemanggilanBinding = SheetPemanggilanBinding.inflate(getLayoutInflater());
+        botAuthBinding = SheetBotAuthBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         setSupportActionBar(binding.materialToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -57,8 +65,41 @@ public class ProfileActivity extends AppCompatActivity {
         viewProfile = getIntent().getStringExtra("view_profile") != null;
         profile = viewProfile? new Gson().fromJson(getIntent().getStringExtra("view_profile"), Profile.class) : AccountUtils.getProfile();
 
-        if (viewProfile) getSupportActionBar().setTitle("Profil "+profile.nick_name);
+        if (viewProfile) {
+            getSupportActionBar().setTitle("Profil "+profile.nick_name);
+            binding.imgEditNum.setVisibility(View.GONE);
+        }
+        else {
+            botAuthBinding.buttonCopy.setOnClickListener(v -> {
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                clipboard.addPrimaryClipChangedListener(()->{
+                    Toast.makeText(getApplicationContext(), "Copied!", Toast.LENGTH_SHORT);
+                });
+                ClipData clip = ClipData.newPlainText("MOPSI Command", "ch_num "+String.valueOf(AccountUtils.getProfile().id+" [nomor baru anda]"));
+                clipboard.setPrimaryClip(clip);
+            });
 
+            botAuthBinding.buttonSend.setOnClickListener(v -> {
+                if (AccountUtils.getProfile() == null){
+                    Toast.makeText(getApplicationContext(), "Anda belum login!", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                String url = getString(R.string.twilio_api) + "&text=" + Uri.encode("ch_num "+String.valueOf(AccountUtils.getProfile().id+" [nomor baru anda]"));
+
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(url));
+                startActivity(intent);
+            });
+
+            botAuthBinding.tvTitle.setText("Ganti nomor");
+            botAuthBinding.tvDescription.setText("Jika anda ingin mengubah nomor yang tertaut di akun ini, maka anda harus melakukan pemindahan nomor melalui Bot WhatsApp dengan menggunakan akun yang sebelum nya sudah tertaut!");
+            botAuthBinding.handle.setVisibility(View.VISIBLE);
+            binding.imgEditNum.setOnClickListener(v -> {
+                dialog.setContentView(botAuthBinding.getRoot());
+                dialog.setCancelable(false);
+                dialog.show();
+            });
+        }
         binding.tvFullName.setText(profile.full_name);
         binding.tvNickName.setText(profile.nick_name);
 
@@ -90,7 +131,7 @@ public class ProfileActivity extends AppCompatActivity {
                     });
                     binding.tvParent.setText(parentProfile.full_name);
                     break;
-                case 3:
+                /*case 3:
                     Profile[] childrenProfile = new Gson().fromJson(othersJson, Profile[].class);
                     binding.tvOthers.setText("Siswa yang terkait");
                     for (Profile child : childrenProfile){
@@ -103,7 +144,7 @@ public class ProfileActivity extends AppCompatActivity {
                         });
                         binding.layoutOthers.addView(itemBinding.getRoot());
                     }
-                    break;
+                    break;*/
                 case 4:
                     Kelas kelas = new Gson().fromJson(othersJson, Kelas.class);
                     binding.layoutClass.setVisibility(View.VISIBLE);
@@ -249,8 +290,9 @@ public class ProfileActivity extends AppCompatActivity {
                             public void onResponse(Response<JsonObject> response) {
                                 if (response.isSuccess()){
                                     AccountUtils.clearState();
-                                    startActivity(new Intent(ProfileActivity.this, SplashActivity.class));
-                                    finish();
+                                    Intent intent = new Intent(ProfileActivity.this, SplashActivity.class);
+                                    startActivity(intent);
+                                    finishAffinity();
                                 } else new MaterialAlertDialogBuilder(ProfileActivity.this)
                                         .setTitle("Terjadi Kesalahan!")
                                         .setMessage(response.message)

@@ -297,6 +297,8 @@ public class PoinFragment extends RekapitulasiFragment {
         }
 
         if (i > 0 || thereUnpub){
+            if (AccountUtils.getProfile().role_id == 5) binding.fab.setVisibility(View.VISIBLE);
+            else binding.fab.setVisibility(View.GONE);
             changeRekap(tanggal);
         }else {
             setNone(true);
@@ -343,13 +345,8 @@ public class PoinFragment extends RekapitulasiFragment {
 
     private void changeRekap(String tanggal){
         this.tanggal = tanggal;
-        if (tanggal.equals("unpublished")) {
-            adapter.setEditable(AccountUtils.getProfile().role_id == 2 || AccountUtils.getProfile().role_id == 4 || AccountUtils.getProfile().role_id == 5);
-            if (AccountUtils.getProfile().role_id == 5) binding.fab.setVisibility(View.VISIBLE);
-        } else {
-            binding.fab.setVisibility(View.GONE);
-            adapter.setEditable(false);
-        }
+        if (tanggal.equals("unpublished")) adapter.setEditable(AccountUtils.getProfile().role_id == 2 || AccountUtils.getProfile().role_id == 4 || AccountUtils.getProfile().role_id == 5);
+        else adapter.setEditable(false);
 
         Poin[] poin = new Poin[0];
 

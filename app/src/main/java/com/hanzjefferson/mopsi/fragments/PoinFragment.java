@@ -297,7 +297,6 @@ public class PoinFragment extends RekapitulasiFragment {
         }
 
         if (i > 0 || thereUnpub){
-            binding.fab.setVisibility(View.VISIBLE);
             changeRekap(tanggal);
         }else {
             setNone(true);
@@ -344,8 +343,13 @@ public class PoinFragment extends RekapitulasiFragment {
 
     private void changeRekap(String tanggal){
         this.tanggal = tanggal;
-        if (tanggal.equals("unpublished")) adapter.setEditable(AccountUtils.getProfile().role_id == 2 || AccountUtils.getProfile().role_id == 4 || AccountUtils.getProfile().role_id == 5);
-        else adapter.setEditable(false);
+        if (tanggal.equals("unpublished")) {
+            adapter.setEditable(AccountUtils.getProfile().role_id == 2 || AccountUtils.getProfile().role_id == 4 || AccountUtils.getProfile().role_id == 5);
+            if (AccountUtils.getProfile().role_id == 5) binding.fab.setVisibility(View.VISIBLE);
+        } else {
+            binding.fab.setVisibility(View.GONE);
+            adapter.setEditable(false);
+        }
 
         Poin[] poin = new Poin[0];
 
@@ -480,7 +484,7 @@ public class PoinFragment extends RekapitulasiFragment {
                     ApiServiceUtils.writeRekap(new ApiServiceUtils.CallbackListener<JsonObject>() {
                         @Override
                         public void onResponse(Response<JsonObject> response) {
-                            if (!response.isSuccess()) {
+                            if (!SocketUtils.getSocket().connected()||!response.isSuccess()) {
                                 setLoading(false);
                                 tanggal = tanggalBackup;
                                 renderData();
@@ -522,7 +526,7 @@ public class PoinFragment extends RekapitulasiFragment {
                     ApiServiceUtils.CallbackListener<JsonObject> listener = new ApiServiceUtils.CallbackListener<JsonObject>() {
                         @Override
                         public void onResponse(Response<JsonObject> response) {
-                            if (!response.isSuccess()) {
+                            if (!SocketUtils.getSocket().connected()||!response.isSuccess()) {
                                 setLoading(false);
                                 tanggal = tanggalBackup;
                                 renderData();

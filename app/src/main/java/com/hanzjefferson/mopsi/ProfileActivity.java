@@ -36,6 +36,7 @@ import com.hanzjefferson.mopsi.models.Profile;
 import com.hanzjefferson.mopsi.models.Response;
 import com.hanzjefferson.mopsi.utils.AccountUtils;
 import com.hanzjefferson.mopsi.utils.ApiServiceUtils;
+import com.hanzjefferson.mopsi.utils.SocketUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -71,12 +72,16 @@ public class ProfileActivity extends AppCompatActivity {
         }
         else {
 
+            botAuthBinding.buttonLogout.setVisibility(View.GONE);
+
             botAuthBinding.buttonSend.setOnClickListener(v -> {
                 if (AccountUtils.getProfile() == null){
                     Toast.makeText(getApplicationContext(), "Anda belum login!", Toast.LENGTH_LONG).show();
                     return;
                 }
                 String url = getString(R.string.twilio_api) + "&text=" + Uri.encode("unauth "+String.valueOf(AccountUtils.getProfile().id));
+
+                SocketUtils.disconnect();
 
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(Uri.parse(url));

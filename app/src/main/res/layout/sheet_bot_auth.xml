@@ -43,6 +43,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Kirim pesan ke +14155238886"
+        android:layout_marginBottom="8dp"
         app:icon="@drawable/ic_send"
+        app:iconGravity="textStart"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_logout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Log Out"
+        app:icon="@drawable/ic_logout"
+        style="@style/Widget.Material3.Button.OutlinedButton.Icon"
+        app:strokeColor="?colorPrimary"
         app:iconGravity="textStart"/>
 </LinearLayout>

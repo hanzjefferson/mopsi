@@ -137,6 +137,45 @@ public class SplashActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
+        botAuthBinding.buttonLogout.setOnClickListener(v -> {
+            bottomSheetDialog.cancel();
+            binding.spinKitView.setVisibility(View.VISIBLE);
+            ApiServiceUtils.logout(new ApiServiceUtils.CallbackListener<JsonObject>() {
+                @Override
+                public void onResponse(Response<JsonObject> response) {
+                    binding.spinKitView.setVisibility(View.GONE);
+                    if (response.isSuccess()){
+                        AccountUtils.clearState();
+                        Intent intent = getIntent();
+                        finish();
+                        startActivity(intent);
+                    } else new MaterialAlertDialogBuilder(SplashActivity.this)
+                            .setTitle("Terjadi Kesalahan!")
+                            .setMessage(response.message)
+                            .setPositiveButton("OK", (d, i)->{
+                                bottomSheetDialog.setContentView(botAuthBinding.getRoot());
+                                bottomSheetDialog.setCancelable(false);
+                                bottomSheetDialog.show();
+                            })
+                            .show();
+                }
+
+                @Override
+                public void onError(VolleyError error) {
+                    binding.spinKitView.setVisibility(View.GONE);
+                    new MaterialAlertDialogBuilder(SplashActivity.this)
+                            .setTitle("Kesalahan Klien")
+                            .setMessage(error.getMessage())
+                            .setPositiveButton("OK", (d, i)->{
+                                bottomSheetDialog.setContentView(botAuthBinding.getRoot());
+                                bottomSheetDialog.setCancelable(false);
+                                bottomSheetDialog.show();
+                            })
+                            .show();
+                }
+            });
+        });
+
         AccountUtils.init(this);
         ApiServiceUtils.init(this);
         
